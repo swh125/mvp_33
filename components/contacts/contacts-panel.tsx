@@ -10,6 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { User } from '@/lib/types'
 import { Search, UserPlus, Users, Star, Building2, MessageSquare, Phone, Video } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useSettings } from '@/lib/settings-context'
+import { getTranslation } from '@/lib/i18n'
 
 interface ContactsPanelProps {
   users: User[]
@@ -20,6 +22,8 @@ interface ContactsPanelProps {
 export function ContactsPanel({ users, currentUser, onStartChat }: ContactsPanelProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const { language } = useSettings()
+  const t = (key: keyof typeof import('@/lib/i18n').translations.en) => getTranslation(language, key)
 
   const filteredUsers = users
     .filter(u => u.id !== currentUser.id)
@@ -34,7 +38,6 @@ export function ContactsPanel({ users, currentUser, onStartChat }: ContactsPanel
       )
     })
 
-  // Group users by department
   const usersByDepartment = filteredUsers.reduce((acc, user) => {
     const dept = user.department || 'Other'
     if (!acc[dept]) acc[dept] = []
@@ -52,12 +55,8 @@ export function ContactsPanel({ users, currentUser, onStartChat }: ContactsPanel
   }
 
   const getStatusText = (status: string) => {
-    switch (status) {
-      case 'online': return 'Online'
-      case 'away': return 'Away'
-      case 'busy': return 'Busy'
-      default: return 'Offline'
-    }
+    const statusKey = status as 'online' | 'away' | 'busy' | 'offline'
+    return t(statusKey)
   }
 
   return (
@@ -66,7 +65,7 @@ export function ContactsPanel({ users, currentUser, onStartChat }: ContactsPanel
       <div className="w-80 border-r flex flex-col">
         <div className="border-b p-4 space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Contacts</h2>
+            <h2 className="text-lg font-semibold">{t('contacts')}</h2>
             <Button size="icon" variant="ghost">
               <UserPlus className="h-5 w-5" />
             </Button>
@@ -74,7 +73,7 @@ export function ContactsPanel({ users, currentUser, onStartChat }: ContactsPanel
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search contacts..."
+              placeholder={t('searchContacts')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
@@ -86,11 +85,11 @@ export function ContactsPanel({ users, currentUser, onStartChat }: ContactsPanel
           <TabsList className="mx-4 mt-2">
             <TabsTrigger value="all" className="flex-1">
               <Users className="h-4 w-4 mr-2" />
-              All
+              {t('all')}
             </TabsTrigger>
             <TabsTrigger value="favorites" className="flex-1">
               <Star className="h-4 w-4 mr-2" />
-              Favorites
+              {t('favorites')}
             </TabsTrigger>
           </TabsList>
 
@@ -138,7 +137,7 @@ export function ContactsPanel({ users, currentUser, onStartChat }: ContactsPanel
             <TabsContent value="favorites" className="m-0 p-4">
               <div className="text-center text-muted-foreground py-8">
                 <Star className="h-12 w-12 mx-auto mb-2 opacity-20" />
-                <p>No favorite contacts yet</p>
+                <p>{t('noFavoriteContacts')}</p>
               </div>
             </TabsContent>
           </ScrollArea>
@@ -177,15 +176,15 @@ export function ContactsPanel({ users, currentUser, onStartChat }: ContactsPanel
                   onClick={() => onStartChat(selectedUser.id)}
                 >
                   <MessageSquare className="h-4 w-4 mr-2" />
-                  Message
+                  {t('message')}
                 </Button>
                 <Button variant="outline">
                   <Phone className="h-4 w-4 mr-2" />
-                  Call
+                  {t('call')}
                 </Button>
                 <Button variant="outline">
                   <Video className="h-4 w-4 mr-2" />
-                  Video
+                  {t('video')}
                 </Button>
               </div>
             </div>
@@ -193,37 +192,37 @@ export function ContactsPanel({ users, currentUser, onStartChat }: ContactsPanel
             <ScrollArea className="flex-1 p-6">
               <div className="space-y-6 max-w-2xl">
                 <div>
-                  <h3 className="text-sm font-semibold mb-3">Contact Information</h3>
+                  <h3 className="text-sm font-semibold mb-3">{t('contactInformation')}</h3>
                   <div className="space-y-3">
                     <div>
-                      <label className="text-sm text-muted-foreground">Email</label>
+                      <label className="text-sm text-muted-foreground">{t('email')}</label>
                       <p className="font-medium">{selectedUser.email}</p>
                     </div>
                     {selectedUser.phone && (
                       <div>
-                        <label className="text-sm text-muted-foreground">Phone</label>
+                        <label className="text-sm text-muted-foreground">{t('phone')}</label>
                         <p className="font-medium">{selectedUser.phone}</p>
                       </div>
                     )}
                     <div>
-                      <label className="text-sm text-muted-foreground">Username</label>
+                      <label className="text-sm text-muted-foreground">{t('username')}</label>
                       <p className="font-medium">@{selectedUser.username}</p>
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <h3 className="text-sm font-semibold mb-3">Work Information</h3>
+                  <h3 className="text-sm font-semibold mb-3">{t('workInformation')}</h3>
                   <div className="space-y-3">
                     {selectedUser.department && (
                       <div>
-                        <label className="text-sm text-muted-foreground">Department</label>
+                        <label className="text-sm text-muted-foreground">{t('department')}</label>
                         <p className="font-medium">{selectedUser.department}</p>
                       </div>
                     )}
                     {selectedUser.title && (
                       <div>
-                        <label className="text-sm text-muted-foreground">Title</label>
+                        <label className="text-sm text-muted-foreground">{t('title')}</label>
                         <p className="font-medium">{selectedUser.title}</p>
                       </div>
                     )}
@@ -232,7 +231,7 @@ export function ContactsPanel({ users, currentUser, onStartChat }: ContactsPanel
 
                 {selectedUser.status_message && (
                   <div>
-                    <h3 className="text-sm font-semibold mb-3">Status</h3>
+                    <h3 className="text-sm font-semibold mb-3">{t('status')}</h3>
                     <p className="text-muted-foreground">{selectedUser.status_message}</p>
                   </div>
                 )}
@@ -243,8 +242,8 @@ export function ContactsPanel({ users, currentUser, onStartChat }: ContactsPanel
           <div className="flex-1 flex items-center justify-center text-muted-foreground">
             <div className="text-center">
               <Users className="h-16 w-16 mx-auto mb-4 opacity-20" />
-              <h3 className="text-lg font-semibold mb-2">No contact selected</h3>
-              <p>Select a contact to view details</p>
+              <h3 className="text-lg font-semibold mb-2">{t('noContactSelected')}</h3>
+              <p>{t('selectContactToViewDetails')}</p>
             </div>
           </div>
         )}

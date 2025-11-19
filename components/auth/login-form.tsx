@@ -8,10 +8,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { mockAuth } from '@/lib/mock-auth'
 import { Loader2, Mail } from 'lucide-react'
 import { useSettings } from '@/lib/settings-context'
-import { getTranslation } from '@/lib/i18n'
 
 interface LoginFormProps {
   onSuccess: () => void
+  onForgotPassword?: () => void
+  onRegister?: () => void
 }
 
 function WeChatIcon({ className }: { className?: string }) {
@@ -33,7 +34,7 @@ function GoogleIcon({ className }: { className?: string }) {
   )
 }
 
-export function LoginForm({ onSuccess }: LoginFormProps) {
+export function LoginForm({ onSuccess, onForgotPassword, onRegister }: LoginFormProps) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -54,10 +55,10 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
         quickDemo: 'Quick Demo Login',
         signingIn: 'Signing in...',
         invalidCredentials: 'Invalid email or password',
-        or: 'Or continue with',
         forgotPassword: 'Forgot password?',
         noAccount: 'Don\'t have an account?',
         createAccount: 'Create one',
+        or: 'Or continue with',
       },
       zh: {
         signIn: '登录',
@@ -71,10 +72,10 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
         quickDemo: '快速演示登录',
         signingIn: '登录中...',
         invalidCredentials: '邮箱或密码无效',
-        or: '或继续使用',
         forgotPassword: '忘记密码？',
         noAccount: '没有账号？',
         createAccount: '立即注册',
+        or: '或继续使用',
       }
     }
     return translations[language]?.[key] || translations.en[key]
@@ -86,10 +87,32 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
     setIsLoading(true)
 
     try {
-      await mockAuth.login(email, password)
-      onSuccess()
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || t('invalidCredentials'))
+      }
+
+      if (data.success && data.user) {
+        // Store user and token
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('chat_app_current_user', JSON.stringify(data.user))
+          localStorage.setItem('chat_app_token', data.token)
+        }
+        onSuccess()
+      } else {
+        throw new Error(t('invalidCredentials'))
+      }
     } catch (err) {
-      setError(t('invalidCredentials'))
+      setError(err instanceof Error ? err.message : t('invalidCredentials'))
     } finally {
       setIsLoading(false)
     }
@@ -110,17 +133,17 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
     }
   }
 
+  // OAuth login handler - redirects to OAuth provider
   const handleOAuthLogin = async (provider: 'wechat' | 'google') => {
     setIsLoading(true)
     setError('')
     try {
-      // Simulate OAuth login - in real app, this would redirect to OAuth provider
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      await mockAuth.login('alice@company.com', 'password')
-      onSuccess()
+      // For better UX, we can open in same window (faster) or new window
+      // Using same window redirect for faster response
+      window.location.href = `/api/auth/oauth/${provider}?action=login`
+      // Note: setIsLoading(false) won't execute due to redirect, which is fine
     } catch (err) {
-      setError(`${provider} login failed`)
-    } finally {
+      setError(`${provider === 'wechat' ? t('wechat') : t('google')} ${t('signIn')} failed`)
       setIsLoading(false)
     }
   }
@@ -134,12 +157,14 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* OAuth Login Buttons */}
         <div className="grid grid-cols-2 gap-3">
           <Button
             type="button"
             variant="outline"
             onClick={() => handleOAuthLogin('wechat')}
             disabled={isLoading}
+            className="w-full"
           >
             <WeChatIcon className="mr-2 h-5 w-5" />
             {t('wechat')}
@@ -149,15 +174,17 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
             variant="outline"
             onClick={() => handleOAuthLogin('google')}
             disabled={isLoading}
+            className="w-full"
           >
             <GoogleIcon className="mr-2 h-5 w-5" />
             {t('google')}
           </Button>
         </div>
 
+        {/* Divider */}
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t" />
+            <span className="w-full border-t border-border/40" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
             <span className="bg-background px-2 text-muted-foreground">
@@ -215,23 +242,35 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
           >
             {t('quickDemo')}
           </Button>
-          <div className="flex justify-between text-sm">
-            <Button 
-              type="button" 
-              variant="link" 
-              className="w-full"
-              onClick={() => alert(t('forgotPassword'))}
-            >
-              {t('forgotPassword')}
-            </Button>
-            <Button 
-              type="button" 
-              variant="link" 
-              className="w-full"
-              onClick={() => alert(t('createAccount'))}
-            >
-              {t('noAccount')} {t('createAccount')}
-            </Button>
+          
+          <div className="pt-2 space-y-3">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-border/40" />
+              </div>
+            </div>
+            
+            <div className="flex flex-col gap-3 text-center">
+              <Button 
+                type="button" 
+                variant="ghost" 
+                className="h-auto py-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                onClick={onForgotPassword || (() => alert(t('forgotPassword')))}
+              >
+                {t('forgotPassword')}
+              </Button>
+              <div className="text-sm">
+                <span className="text-muted-foreground">{t('noAccount')} </span>
+                <Button 
+                  type="button" 
+                  variant="link" 
+                  className="h-auto p-0 text-sm font-medium underline-offset-4 hover:underline"
+                  onClick={onRegister || (() => alert(t('createAccount')))}
+                >
+                  {t('createAccount')}
+                </Button>
+              </div>
+            </div>
           </div>
         </form>
       </CardContent>

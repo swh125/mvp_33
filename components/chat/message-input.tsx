@@ -10,6 +10,8 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { VoiceMessageRecorder } from './voice-message-recorder'
+import { useSettings } from '@/lib/settings-context'
+import { getTranslation } from '@/lib/i18n'
 
 interface MessageInputProps {
   onSendMessage: (content: string, type?: string, file?: File) => void
@@ -22,20 +24,19 @@ export function MessageInput({ onSendMessage, disabled = false }: MessageInputPr
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false)
+  const [isSending, setIsSending] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const imageInputRef = useRef<HTMLInputElement>(null)
+  const { language } = useSettings()
+  const t = (key: keyof typeof import('@/lib/i18n').translations.en) => getTranslation(language, key)
 
   const handleSend = () => {
-    if ((message.trim() || selectedFile) && !disabled) {
-      if (selectedFile) {
-        const fileType = selectedFile.type.startsWith('image/') ? 'image' : 
-                        selectedFile.type.startsWith('video/') ? 'video' : 'file'
-        onSendMessage(message.trim(), fileType, selectedFile)
-      } else {
-        onSendMessage(message.trim())
-      }
+    if ((message.trim() || selectedFile) && !disabled && !isSending) {
+      const contentToSend = message.trim()
+      const fileToSend = selectedFile
       
+      // Clear input immediately for instant feedback
       setMessage('')
       setIsTyping(false)
       clearFilePreview()
@@ -44,6 +45,18 @@ export function MessageInput({ onSendMessage, disabled = false }: MessageInputPr
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto'
       }
+      
+      // Send message immediately (optimistic update)
+      if (fileToSend) {
+        const fileType = fileToSend.type.startsWith('image/') ? 'image' : 
+                        fileToSend.type.startsWith('video/') ? 'video' : 'file'
+        onSendMessage(contentToSend, fileType, fileToSend)
+      } else {
+        onSendMessage(contentToSend)
+      }
+      
+      // Reset sending state immediately
+      setIsSending(false)
     }
   }
 
@@ -210,7 +223,7 @@ export function MessageInput({ onSendMessage, disabled = false }: MessageInputPr
               value={message}
               onChange={handleChange}
               onKeyDown={handleKeyDown}
-              placeholder="Type a message..."
+              placeholder={t('typeMessage')}
               disabled={disabled}
               className="min-h-[44px] max-h-[200px] resize-none"
               rows={1}
@@ -218,7 +231,7 @@ export function MessageInput({ onSendMessage, disabled = false }: MessageInputPr
             <Button
               size="icon"
               onClick={handleSend}
-              disabled={(!message.trim() && !selectedFile) || disabled}
+              disabled={(!message.trim() && !selectedFile) || disabled || isSending}
               className="shrink-0 h-11 w-11"
             >
               <Send className="h-5 w-5" />
@@ -226,9 +239,8 @@ export function MessageInput({ onSendMessage, disabled = false }: MessageInputPr
           </div>
 
           <p className="text-xs text-muted-foreground">
-            Press <kbd className="px-1 py-0.5 rounded bg-muted text-xs">Enter</kbd> to send,{' '}
-            <kbd className="px-1 py-0.5 rounded bg-muted text-xs">Shift</kbd> +{' '}
-            <kbd className="px-1 py-0.5 rounded bg-muted text-xs">Enter</kbd> for new line
+            {t('pressEnterToSend')},{' '}
+            {t('shiftEnterForNewLine')}
           </p>
         </div>
       </div>

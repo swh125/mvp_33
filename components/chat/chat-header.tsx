@@ -14,6 +14,8 @@ import {
 import { useState } from 'react'
 import { VoiceCallDialog } from './voice-call-dialog'
 import { VideoCallDialog } from './video-call-dialog'
+import { useSettings } from '@/lib/settings-context'
+import { getTranslation } from '@/lib/i18n'
 
 interface ChatHeaderProps {
   conversation: ConversationWithDetails
@@ -23,6 +25,8 @@ interface ChatHeaderProps {
 export function ChatHeader({ conversation, currentUser }: ChatHeaderProps) {
   const [showVoiceCall, setShowVoiceCall] = useState(false)
   const [showVideoCall, setShowVideoCall] = useState(false)
+  const { language } = useSettings()
+  const t = (key: keyof typeof import('@/lib/i18n').translations.en) => getTranslation(language, key)
 
   const getConversationDisplay = () => {
     if (conversation.type === 'direct') {
@@ -37,12 +41,10 @@ export function ChatHeader({ conversation, currentUser }: ChatHeaderProps) {
     }
     return {
       name: conversation.name || 'Unnamed',
-      subtitle: `${conversation.members.length} members`,
+      subtitle: `${conversation.members.length} ${t('members')}`,
       avatar: conversation.avatar_url,
     }
   }
-
-  const display = getConversationDisplay()
 
   const getConversationIcon = () => {
     if (conversation.type === 'direct') return null
@@ -58,6 +60,8 @@ export function ChatHeader({ conversation, currentUser }: ChatHeaderProps) {
       default: return 'bg-gray-400'
     }
   }
+
+  const display = getConversationDisplay()
 
   const isGroupCall = conversation.type === 'group' || conversation.type === 'channel'
   const callRecipient = display.user || currentUser
@@ -115,11 +119,11 @@ export function ChatHeader({ conversation, currentUser }: ChatHeaderProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem>Mute notifications</DropdownMenuItem>
-                <DropdownMenuItem>Pin conversation</DropdownMenuItem>
-                <DropdownMenuItem>View details</DropdownMenuItem>
+                <DropdownMenuItem>{t('muteNotifications')}</DropdownMenuItem>
+                <DropdownMenuItem>{t('pinConversation')}</DropdownMenuItem>
+                <DropdownMenuItem>{t('viewDetails')}</DropdownMenuItem>
                 <DropdownMenuItem className="text-destructive">
-                  Leave conversation
+                  {t('leaveConversation')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

@@ -4,6 +4,7 @@ import { getUserById } from './mock-data'
 
 // In-memory message storage
 const messageStore = new Map<string, MessageWithSender[]>()
+let messageIdCounter = 0
 
 // Initialize with demo messages
 const initMessages = (conversationId: string): MessageWithSender[] => {
@@ -142,6 +143,14 @@ export const mockMessageService = {
     return messageStore.get(conversationId) || []
   },
 
+  getMessageById: (messageId: string): MessageWithSender | null => {
+    for (const messages of messageStore.values()) {
+      const message = messages.find(m => m.id === messageId)
+      if (message) return message
+    }
+    return null
+  },
+
   sendMessage: (
     conversationId: string, 
     senderId: string, 
@@ -152,8 +161,13 @@ export const mockMessageService = {
     const sender = getUserById(senderId)
     if (!sender) throw new Error('Sender not found')
 
+    // Generate unique message ID using high-resolution time for <1ms speed
+    messageIdCounter++
+    const now = performance.now()
+    const messageId = `msg-${now}-${messageIdCounter}`
+
     const newMessage: MessageWithSender = {
-      id: `msg-${Date.now()}`,
+      id: messageId,
       conversation_id: conversationId,
       sender_id: senderId,
       sender,
@@ -178,5 +192,67 @@ export const mockMessageService = {
     messageStore.set(conversationId, messages)
 
     return newMessage
+  },
+
+  editMessage: (messageId: string, content: string): MessageWithSender | null => {
+    const message = mockMessageService.getMessageById(messageId)
+    if (!message) return null
+
+    message.content = content
+    message.is_edited = true
+    message.updated_at = new Date().toISOString()
+
+    return message
+  },
+
+  deleteMessage: (messageId: string): MessageWithSender | null => {
+    const message = mockMessageService.getMessageById(messageId)
+    if (!message) return null
+
+    message.is_deleted = true
+    message.content = 'This message has been deleted'
+    message.updated_at = new Date().toISOString()
+
+    return message
+  },
+
+  addReaction: (messageId: string, emoji: string, userId: string): MessageWithSender | null => {
+    const message = mockMessageService.getMessageById(messageId)
+    if (!message) return null
+
+    const existingReaction = message.reactions.find(r => r.emoji === emoji)
+    if (existingReaction) {
+      if (!existingReaction.user_ids.includes(userId)) {
+        existingReaction.user_ids.push(userId)
+        existingReaction.count = existingReaction.user_ids.length
+      }
+    } else {
+      message.reactions.push({
+        emoji,
+        user_ids: [userId],
+        count: 1,
+      })
+    }
+
+    message.updated_at = new Date().toISOString()
+    return message
+  },
+
+  removeReaction: (messageId: string, emoji: string, userId: string): MessageWithSender | null => {
+    const message = mockMessageService.getMessageById(messageId)
+    if (!message) return null
+
+    const reaction = message.reactions.find(r => r.emoji === emoji)
+    if (reaction) {
+      reaction.user_ids = reaction.user_ids.filter(id => id !== userId)
+      reaction.count = reaction.user_ids.length
+
+      if (reaction.count === 0) {
+        message.reactions = message.reactions.filter(r => r.emoji !== emoji)
+      }
+    }
+
+    message.updated_at = new Date().toISOString()
+    return message
   },
 }

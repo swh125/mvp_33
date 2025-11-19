@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { mockAuth } from '@/lib/mock-auth'
 import { getUserConversations, mockUsers } from '@/lib/mock-data'
@@ -14,6 +14,8 @@ import { ChannelInfoPanel } from '@/components/channels/channel-info-panel'
 import { CreateChannelDialog } from '@/components/channels/create-channel-dialog'
 import { User, Workspace, ConversationWithDetails, MessageWithSender } from '@/lib/types'
 import { Hash } from 'lucide-react'
+import { useSettings } from '@/lib/settings-context'
+import { getTranslation } from '@/lib/i18n'
 
 export default function ChannelsPage() {
   const router = useRouter()
@@ -24,6 +26,8 @@ export default function ChannelsPage() {
   const [messages, setMessages] = useState<MessageWithSender[]>([])
   const [showChannelInfo, setShowChannelInfo] = useState(false)
   const [showCreateChannel, setShowCreateChannel] = useState(false)
+  const { language } = useSettings()
+  const t = (key: keyof typeof import('@/lib/i18n').translations.en) => getTranslation(language, key)
 
   useEffect(() => {
     const user = mockAuth.getCurrentUser()
@@ -56,28 +60,92 @@ export default function ChannelsPage() {
     }
   }, [selectedChannelId])
 
+  const handleSendMessage = useCallback((content: string, type: string = 'text', file?: File) => {
+    if (!selectedChannelId || !currentUser || !content.trim()) return
+
+    // Optimistic update: create message object inline for maximum speed
+    const now = performance.now()
+    const tempId = `temp-${now}`
+    const timestamp = new Date().toISOString()
+    
+    const optimisticMessage: MessageWithSender = {
+      id: tempId,
+      conversation_id: selectedChannelId,
+      sender_id: currentUser.id,
+      sender: currentUser,
+      content,
+      type: type as any,
+      reactions: [],
+      is_edited: false,
+      is_deleted: false,
+      created_at: timestamp,
+      updated_at: timestamp,
+      metadata: file ? {
+        file_name: file.name,
+        file_size: file.size,
+        file_type: file.type,
+        file_url: URL.createObjectURL(file),
+        thumbnail_url: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined,
+      } : undefined,
+    }
+
+    // Add to UI immediately (<1ms) - synchronous state update
+    setMessages(prev => [...prev, optimisticMessage])
+
+    // Sync with service asynchronously (non-blocking)
+    Promise.resolve().then(() => {
+      const newMessage = mockMessageService.sendMessage(
+        selectedChannelId,
+        currentUser.id,
+        content,
+        type,
+        file
+      )
+      
+      // Replace temp message with real one
+      setMessages(prev => prev.map(msg => msg.id === tempId ? newMessage : msg))
+    })
+  }, [selectedChannelId, currentUser])
+
+  const handleEditMessage = useCallback((messageId: string, content: string) => {
+    const updatedMessage = mockMessageService.editMessage(messageId, content)
+    if (updatedMessage) {
+      setMessages(prev => prev.map(msg => msg.id === messageId ? updatedMessage : msg))
+    }
+  }, [])
+
+  const handleDeleteMessage = useCallback((messageId: string) => {
+    const deletedMessage = mockMessageService.deleteMessage(messageId)
+    if (deletedMessage) {
+      setMessages(prev => prev.map(msg => msg.id === messageId ? deletedMessage : msg))
+    }
+  }, [])
+
+  const handleAddReaction = useCallback((messageId: string, emoji: string) => {
+    if (!currentUser) return
+    const updatedMessage = mockMessageService.addReaction(messageId, emoji, currentUser.id)
+    if (updatedMessage) {
+      setMessages(prev => prev.map(msg => msg.id === messageId ? updatedMessage : msg))
+    }
+  }, [currentUser])
+
+  const handleRemoveReaction = useCallback((messageId: string, emoji: string) => {
+    if (!currentUser) return
+    const updatedMessage = mockMessageService.removeReaction(messageId, emoji, currentUser.id)
+    if (updatedMessage) {
+      setMessages(prev => prev.map(msg => msg.id === messageId ? updatedMessage : msg))
+    }
+  }, [currentUser])
+
+  const handleCreateChannel = useCallback((data: { name: string; description: string; isPrivate: boolean }) => {
+    console.log('[v0] Create channel:', data)
+  }, [])
+
   if (!currentUser || !currentWorkspace) {
     return null
   }
 
   const selectedChannel = conversations.find(c => c.id === selectedChannelId)
-
-  const handleSendMessage = (content: string, type: string = 'text') => {
-    if (!selectedChannelId || !currentUser) return
-
-    const newMessage = mockMessageService.sendMessage(
-      selectedChannelId,
-      currentUser.id,
-      content,
-      type
-    )
-
-    setMessages(prev => [...prev, newMessage])
-  }
-
-  const handleCreateChannel = (data: { name: string; description: string; isPrivate: boolean }) => {
-    console.log('[v0] Create channel:', data)
-  }
 
   return (
     <div className="flex h-screen flex-col">
@@ -98,15 +166,22 @@ export default function ChannelsPage() {
                 conversation={selectedChannel} 
                 currentUser={currentUser} 
               />
-              <MessageList messages={messages} currentUser={currentUser} />
+              <MessageList 
+                messages={messages} 
+                currentUser={currentUser}
+                onEditMessage={handleEditMessage}
+                onDeleteMessage={handleDeleteMessage}
+                onAddReaction={handleAddReaction}
+                onRemoveReaction={handleRemoveReaction}
+              />
               <MessageInput onSendMessage={handleSendMessage} />
             </>
           ) : (
             <div className="flex-1 flex items-center justify-center text-muted-foreground">
               <div className="text-center">
                 <Hash className="h-16 w-16 mx-auto mb-4 opacity-20" />
-                <h3 className="text-lg font-semibold mb-2">No channel selected</h3>
-                <p>Select a channel to view messages</p>
+                <h3 className="text-lg font-semibold mb-2">{t('noChannelSelected')}</h3>
+                <p>{t('selectChannelToViewMessages')}</p>
               </div>
             </div>
           )}

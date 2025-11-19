@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { mockAuth } from '@/lib/mock-auth'
 import { getUserConversations, mockUsers } from '@/lib/mock-data'
@@ -22,6 +22,7 @@ export default function ChatPage() {
   const [selectedConversationId, setSelectedConversationId] = useState<string>()
   const [messages, setMessages] = useState<MessageWithSender[]>([])
   const [showNewConversation, setShowNewConversation] = useState(false)
+  const [sidebarExpanded, setSidebarExpanded] = useState(false)
 
   useEffect(() => {
     const user = mockAuth.getCurrentUser()
@@ -50,50 +51,118 @@ export default function ChatPage() {
     }
   }, [selectedConversationId])
 
+  const handleNewConversation = useCallback(() => {
+    setShowNewConversation(true)
+  }, [])
+
+  const handleSendMessage = useCallback((content: string, type: string = 'text', file?: File) => {
+    if (!selectedConversationId || !currentUser || !content.trim()) return
+
+    // Optimistic update: create message object inline for maximum speed
+    const now = performance.now()
+    const tempId = `temp-${now}`
+    const timestamp = new Date().toISOString()
+    
+    const optimisticMessage: MessageWithSender = {
+      id: tempId,
+      conversation_id: selectedConversationId,
+      sender_id: currentUser.id,
+      sender: currentUser,
+      content,
+      type: type as any,
+      reactions: [],
+      is_edited: false,
+      is_deleted: false,
+      created_at: timestamp,
+      updated_at: timestamp,
+      metadata: file ? {
+        file_name: file.name,
+        file_size: file.size,
+        file_type: file.type,
+        file_url: URL.createObjectURL(file),
+        thumbnail_url: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined,
+      } : undefined,
+    }
+
+    // Add to UI immediately (<1ms) - synchronous state update
+    setMessages(prev => [...prev, optimisticMessage])
+
+    // Sync with service asynchronously (non-blocking)
+    Promise.resolve().then(() => {
+      const newMessage = mockMessageService.sendMessage(
+        selectedConversationId,
+        currentUser.id,
+        content,
+        type,
+        file
+      )
+      
+      // Replace temp message with real one
+      setMessages(prev => prev.map(msg => msg.id === tempId ? newMessage : msg))
+    })
+  }, [selectedConversationId, currentUser])
+
+  const handleEditMessage = useCallback((messageId: string, content: string) => {
+    const updatedMessage = mockMessageService.editMessage(messageId, content)
+    if (updatedMessage) {
+      setMessages(prev => prev.map(msg => msg.id === messageId ? updatedMessage : msg))
+    }
+  }, [])
+
+  const handleDeleteMessage = useCallback((messageId: string) => {
+    const deletedMessage = mockMessageService.deleteMessage(messageId)
+    if (deletedMessage) {
+      setMessages(prev => prev.map(msg => msg.id === messageId ? deletedMessage : msg))
+    }
+  }, [])
+
+  const handleAddReaction = useCallback((messageId: string, emoji: string) => {
+    if (!currentUser) return
+    const updatedMessage = mockMessageService.addReaction(messageId, emoji, currentUser.id)
+    if (updatedMessage) {
+      setMessages(prev => prev.map(msg => msg.id === messageId ? updatedMessage : msg))
+    }
+  }, [currentUser])
+
+  const handleRemoveReaction = useCallback((messageId: string, emoji: string) => {
+    if (!currentUser) return
+    const updatedMessage = mockMessageService.removeReaction(messageId, emoji, currentUser.id)
+    if (updatedMessage) {
+      setMessages(prev => prev.map(msg => msg.id === messageId ? updatedMessage : msg))
+    }
+  }, [currentUser])
+
+  const handleCreateDirect = useCallback((userId: string) => {
+    console.log('[v0] Create direct conversation with:', userId)
+  }, [])
+
+  const handleCreateGroup = useCallback((userIds: string[], name: string) => {
+    console.log('[v0] Create group conversation:', name, userIds)
+  }, [])
+
   if (!currentUser || !currentWorkspace) {
     return null
   }
 
   const selectedConversation = conversations.find(c => c.id === selectedConversationId)
 
-  const handleNewConversation = () => {
-    setShowNewConversation(true)
-  }
-
-  const handleSendMessage = (content: string, type: string = 'text', file?: File) => {
-    if (!selectedConversationId || !currentUser) return
-
-    const newMessage = mockMessageService.sendMessage(
-      selectedConversationId,
-      currentUser.id,
-      content,
-      type,
-      file
-    )
-
-    setMessages(prev => [...prev, newMessage])
-  }
-
-  const handleCreateDirect = (userId: string) => {
-    console.log('[v0] Create direct conversation with:', userId)
-  }
-
-  const handleCreateGroup = (userIds: string[], name: string) => {
-    console.log('[v0] Create group conversation:', name, userIds)
-  }
-
   return (
     <div className="flex h-screen flex-col">
       <WorkspaceHeader workspace={currentWorkspace} currentUser={currentUser} />
 
       <div className="flex flex-1 overflow-hidden">
-        <div className="w-80">
+        <div 
+          className="transition-all duration-300 ease-in-out relative"
+          style={{ width: sidebarExpanded ? '400px' : '320px' }}
+        >
           <Sidebar
             conversations={conversations}
             currentConversationId={selectedConversationId}
             currentUser={currentUser}
             onSelectConversation={setSelectedConversationId}
             onNewConversation={handleNewConversation}
+            expanded={sidebarExpanded}
+            onToggleExpand={() => setSidebarExpanded(!sidebarExpanded)}
           />
         </div>
 
@@ -104,7 +173,14 @@ export default function ChatPage() {
                 conversation={selectedConversation} 
                 currentUser={currentUser} 
               />
-              <MessageList messages={messages} currentUser={currentUser} />
+              <MessageList 
+                messages={messages} 
+                currentUser={currentUser}
+                onEditMessage={handleEditMessage}
+                onDeleteMessage={handleDeleteMessage}
+                onAddReaction={handleAddReaction}
+                onRemoveReaction={handleRemoveReaction}
+              />
               <MessageInput onSendMessage={handleSendMessage} />
             </>
           ) : (

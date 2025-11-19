@@ -7,6 +7,8 @@ import { mockWorkspaces } from '@/lib/mock-data'
 import { mockAuth } from '@/lib/mock-auth'
 import { Workspace } from '@/lib/types'
 import { Building2, ChevronRight } from 'lucide-react'
+import { useSettings } from '@/lib/settings-context'
+import { getTranslation } from '@/lib/i18n'
 
 interface WorkspaceSelectorProps {
   onSelect: (workspace: Workspace) => void
@@ -14,6 +16,8 @@ interface WorkspaceSelectorProps {
 
 export function WorkspaceSelector({ onSelect }: WorkspaceSelectorProps) {
   const [workspaces] = useState(mockWorkspaces)
+  const { language } = useSettings()
+  const t = (key: keyof typeof import('@/lib/i18n').translations.en) => getTranslation(language, key)
 
   const handleSelect = (workspace: Workspace) => {
     mockAuth.setCurrentWorkspace(workspace)
@@ -23,9 +27,9 @@ export function WorkspaceSelector({ onSelect }: WorkspaceSelectorProps) {
   return (
     <Card className="w-full max-w-2xl">
       <CardHeader>
-        <CardTitle className="text-2xl font-semibold">Select Workspace</CardTitle>
+        <CardTitle className="text-2xl font-semibold">{t('selectWorkspace')}</CardTitle>
         <CardDescription>
-          Choose a workspace to continue
+          {t('chooseWorkspace')}
         </CardDescription>
       </CardHeader>
       <CardContent>

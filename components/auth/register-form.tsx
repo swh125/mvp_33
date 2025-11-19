@@ -98,27 +98,46 @@ export function RegisterForm({ onSuccess, onBack }: RegisterFormProps) {
     setIsLoading(true)
 
     try {
-      // Simulate registration - in real app, this would call registration API
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      await mockAuth.login('alice@company.com', 'password')
-      onSuccess()
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password, name }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || t('registrationFailed'))
+      }
+
+      if (data.success && data.user) {
+        // Store user and token
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('chat_app_current_user', JSON.stringify(data.user))
+          localStorage.setItem('chat_app_token', data.token)
+        }
+        onSuccess()
+      } else {
+        throw new Error(t('registrationFailed'))
+      }
     } catch (err) {
-      setError(t('registrationFailed'))
+      setError(err instanceof Error ? err.message : t('registrationFailed'))
     } finally {
       setIsLoading(false)
     }
   }
 
+  // OAuth register handler - redirects to OAuth provider
   const handleOAuthRegister = async (provider: 'wechat' | 'google') => {
     setIsLoading(true)
     setError('')
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      await mockAuth.login('alice@company.com', 'password')
-      onSuccess()
+      // Redirect to OAuth provider with register action
+      window.location.href = `/api/auth/oauth/${provider}?action=register`
     } catch (err) {
       setError(`${provider} registration failed`)
-    } finally {
       setIsLoading(false)
     }
   }
