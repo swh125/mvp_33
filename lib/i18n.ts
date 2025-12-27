@@ -197,9 +197,6 @@ export const translations = {
     accept: 'Accept',
     reject: 'Reject',
     ok: 'OK',
-    reject: 'Reject',
-    sendMessage: 'Send message',
-    ok: 'OK',
     
     // Delete contact
     deleteContact: 'Delete Contact',
