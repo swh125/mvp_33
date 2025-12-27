@@ -617,7 +617,7 @@ export function ContactRequestsPanel({
     return (
       <div className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground">
         <UserPlus className="h-12 w-12 mb-4 opacity-50" />
-        <p>No pending contact requests</p>
+        <p>{t('noPendingContactRequests')}</p>
       </div>
     )
   }
@@ -667,7 +667,7 @@ export function ContactRequestsPanel({
                   disabled={processingIds.has(request.id)}
                 >
                   <Check className="h-4 w-4 mr-1" />
-                  Accept
+                  {t('accept')}
                 </Button>
                 <Button
                   size="sm"
@@ -684,7 +684,7 @@ export function ContactRequestsPanel({
                     variant="ghost"
                     onClick={() => onMessage(requester.id)}
                     className="h-8 shrink-0"
-                    title="Send message"
+                    title={t('sendMessage')}
                   >
                     <MessageSquare className="h-4 w-4" />
                   </Button>

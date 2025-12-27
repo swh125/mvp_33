@@ -193,6 +193,13 @@ export const translations = {
     contactRequestSent: 'Contact request sent',
     contactRequestSentDescription: 'Your contact request has been sent successfully.',
     weAreNowFriends: 'We are now friends.',
+    noPendingContactRequests: 'No pending contact requests',
+    accept: 'Accept',
+    reject: 'Reject',
+    ok: 'OK',
+    reject: 'Reject',
+    sendMessage: 'Send message',
+    ok: 'OK',
     
     // Delete contact
     deleteContact: 'Delete Contact',

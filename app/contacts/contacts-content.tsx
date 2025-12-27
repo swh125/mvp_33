@@ -854,7 +854,7 @@ function ContactsPageContent() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button onClick={() => setShowSuccessDialog(false)}>OK</Button>
+            <Button onClick={() => setShowSuccessDialog(false)}>{t('ok')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
