@@ -861,3 +861,5 @@ function ContactsPageContent() {
     </>
   )
 }
+
+export default ContactsPageContent
