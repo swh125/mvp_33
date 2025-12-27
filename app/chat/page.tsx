@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback, useRef, Suspense } from 'react'
 
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 
@@ -42,7 +42,7 @@ type ConversationsApiResponse = {
 
 }
 
-export default function ChatPage() {
+function ChatPageContent() {
 
   const router = useRouter()
 
@@ -7873,6 +7873,14 @@ export default function ChatPage() {
 
   )
 
+}
+
+export default function ChatPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
+      <ChatPageContent />
+    </Suspense>
+  )
 }
 
 
