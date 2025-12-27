@@ -1,5 +1,8 @@
 'use client'
 
+// Force dynamic rendering to avoid SSR issues with useSearchParams
+export const dynamic = 'force-dynamic'
+
 import { useEffect, useState, useCallback, useRef, Suspense } from 'react'
 
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
