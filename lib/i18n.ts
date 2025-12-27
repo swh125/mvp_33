@@ -297,6 +297,16 @@ export const translations = {
     sendMessage: '发送消息',
     contactInformation: '联系信息',
     workInformation: '工作信息',
+    
+    // Contact requests
+    contactRequestSent: '好友申请已发送',
+    contactRequestSentDescription: '您的好友申请已成功发送。',
+    weAreNowFriends: '我们现在是好友了。',
+    noPendingContactRequests: '暂无待处理的好友申请',
+    accept: '接受',
+    reject: '拒绝',
+    ok: '确定',
+    
     noContactSelected: '未选择联系人',
     selectContactToViewDetails: '选择联系人查看详情',
     noFavoriteContacts: '暂无收藏联系人',
