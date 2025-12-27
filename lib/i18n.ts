@@ -282,6 +282,8 @@ export const translations = {
     unpinMessage: '取消置顶',
     hideMessage: '隐藏消息',
     show: '显示',
+    copy: '复制',
+    copied: '已复制',
     
     // Contacts
     allContacts: '所有联系人',
