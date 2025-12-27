@@ -278,6 +278,10 @@ export const translations = {
     today: '今天',
     yesterday: '昨天',
     edited: '(已编辑)',
+    pinMessage: '置顶消息',
+    unpinMessage: '取消置顶',
+    hideMessage: '隐藏消息',
+    show: '显示',
     
     // Contacts
     allContacts: '所有联系人',
