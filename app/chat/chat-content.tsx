@@ -31,6 +31,8 @@ import { LimitAlert } from '@/components/subscription/limit-alert'
 import { createClient } from '@/lib/supabase/client'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { cn } from '@/lib/utils'
+import { useSettings } from '@/lib/settings-context'
+import { getTranslation } from '@/lib/i18n'
 
 type ConversationsApiResponse = {
 
@@ -93,6 +95,8 @@ function ChatPageContent() {
   const [incomingCallRecipient, setIncomingCallRecipient] = useState<User | null>(null)
 
   const { limits, subscription } = useSubscription()
+  const { language } = useSettings()
+  const t = (key: keyof typeof import('@/lib/i18n').translations.en) => getTranslation(language, key)
 
   const loadingConversationsRef = useRef<Set<string>>(new Set())
 
@@ -7825,9 +7829,9 @@ function ChatPageContent() {
 
                 <MessageSquare className="h-16 w-16 mx-auto mb-4 opacity-20" />
 
-                <h3 className="text-lg font-semibold mb-2">No conversation selected</h3>
+                <h3 className="text-lg font-semibold mb-2">{t('noConversationSelected')}</h3>
 
-                <p>Select a conversation to start messaging</p>
+                <p>{t('selectConversationToStart')}</p>
 
               </div>
 

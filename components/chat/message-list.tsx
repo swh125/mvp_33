@@ -1468,7 +1468,7 @@ export function MessageList({
 
                               <Edit2 className="h-4 w-4 mr-2" />
 
-                              Edit
+                              {t('edit')}
 
                             </ContextMenuItem>
 
@@ -1534,7 +1534,7 @@ export function MessageList({
 
                                 <Copy className="h-4 w-4 mr-2" />
 
-                                Copy
+                                {t('copy')}
 
                               </ContextMenuItem>
 
@@ -1558,7 +1558,7 @@ export function MessageList({
 
                                 <Trash2 className="h-4 w-4 mr-2" />
 
-                                Delete
+                                {t('delete')}
 
                               </ContextMenuItem>
 

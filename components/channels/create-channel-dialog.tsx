@@ -15,6 +15,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Hash, Lock } from 'lucide-react'
+import { useSettings } from '@/lib/settings-context'
+import { getTranslation } from '@/lib/i18n'
 
 interface CreateChannelDialogProps {
   open: boolean
@@ -34,6 +36,8 @@ export function CreateChannelDialog({
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [isPrivate, setIsPrivate] = useState(false)
+  const { language } = useSettings()
+  const t = (key: keyof typeof import('@/lib/i18n').translations.en) => getTranslation(language, key)
 
   const handleCreate = () => {
     if (name.trim()) {
@@ -57,15 +61,15 @@ export function CreateChannelDialog({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Create Channel</DialogTitle>
+          <DialogTitle>{t('createChannel')}</DialogTitle>
           <DialogDescription>
-            Create a new channel for your workspace
+            {t('createNewChannel')}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="channel-name">Channel Name</Label>
+            <Label htmlFor="channel-name">{t('channelName')}</Label>
             <div className="relative">
               <div className="absolute left-3 top-1/2 -translate-y-1/2">
                 {isPrivate ? (
@@ -76,7 +80,7 @@ export function CreateChannelDialog({
               </div>
               <Input
                 id="channel-name"
-                placeholder="e.g. general, marketing, engineering"
+                placeholder={t('channelNamePlaceholder')}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="pl-9"
@@ -85,10 +89,10 @@ export function CreateChannelDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="channel-description">Description (optional)</Label>
+            <Label htmlFor="channel-description">{t('description')} (optional)</Label>
             <Textarea
               id="channel-description"
-              placeholder="What is this channel about?"
+              placeholder={t('channelDescriptionPlaceholder')}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
@@ -98,10 +102,10 @@ export function CreateChannelDialog({
           <div className="flex items-center justify-between rounded-lg border p-4">
             <div className="space-y-0.5">
               <Label htmlFor="private-channel" className="text-base">
-                Private Channel
+                {t('privateChannel')}
               </Label>
               <p className="text-sm text-muted-foreground">
-                Only invited members can view and join
+                {t('privateChannelDescription')}
               </p>
             </div>
             <Switch
@@ -114,10 +118,10 @@ export function CreateChannelDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={handleClose}>
-            Cancel
+            {t('cancel')}
           </Button>
           <Button onClick={handleCreate} disabled={!name.trim()}>
-            Create Channel
+            {t('createChannel')}
           </Button>
         </DialogFooter>
       </DialogContent>

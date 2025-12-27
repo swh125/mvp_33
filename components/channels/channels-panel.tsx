@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge'
 import { ConversationWithDetails } from '@/lib/types'
 import { Search, Plus, Hash, Lock, Users, Settings, Pin, PinOff, EyeOff, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useSettings } from '@/lib/settings-context'
+import { getTranslation } from '@/lib/i18n'
 import {
   ContextMenu,
   ContextMenuContent,
@@ -38,6 +40,8 @@ export function ChannelsPanel({
   onDeleteChannel,
 }: ChannelsPanelProps) {
   const [searchQuery, setSearchQuery] = useState('')
+  const { language } = useSettings()
+  const t = (key: keyof typeof import('@/lib/i18n').translations.en) => getTranslation(language, key)
 
   // Separate channels and groups, filter out hidden ones, and sort by pinned
   const visibleConversations = conversations.filter(c => !c.is_hidden)
@@ -229,7 +233,7 @@ export function ChannelsPanel({
       {/* Header */}
       <div className="border-b p-3 space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="font-semibold">Channels & Groups</h2>
+          <h2 className="font-semibold">{t('channelsAndGroups')}</h2>
           <Button size="icon" variant="ghost" className="h-7 w-7" onClick={onCreateChannel}>
             <Plus className="h-4 w-4" />
           </Button>
@@ -253,7 +257,7 @@ export function ChannelsPanel({
             <div>
               <div className="flex items-center justify-between px-2 py-1 mb-1">
                 <span className="text-xs font-semibold text-muted-foreground uppercase">
-                  Public Channels
+                  {t('publicChannels')}
                 </span>
               </div>
               <div className="space-y-0.5">
@@ -269,7 +273,7 @@ export function ChannelsPanel({
             <div>
               <div className="flex items-center justify-between px-2 py-1 mb-1">
                 <span className="text-xs font-semibold text-muted-foreground uppercase">
-                  Private Channels
+                  {t('privateChannels')}
                 </span>
               </div>
               <div className="space-y-0.5">
@@ -285,7 +289,7 @@ export function ChannelsPanel({
             <div>
               <div className="flex items-center justify-between px-2 py-1 mb-1">
                 <span className="text-xs font-semibold text-muted-foreground uppercase">
-                  Groups
+                  {t('groups')}
                 </span>
               </div>
               <div className="space-y-0.5">
@@ -299,7 +303,7 @@ export function ChannelsPanel({
           {/* Empty state */}
           {filteredChannels.length === 0 && filteredGroups.length === 0 && (
             <div className="text-center py-8 text-sm text-muted-foreground">
-              No channels or groups found
+              {t('noChannelsOrGroupsFound')}
             </div>
           )}
         </div>

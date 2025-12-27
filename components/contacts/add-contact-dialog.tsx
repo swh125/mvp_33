@@ -156,9 +156,9 @@ export function AddContactDialog({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="w-full sm:max-w-2xl max-h-[88vh] flex flex-col overflow-hidden">
         <DialogHeader>
-          <DialogTitle>Add Contact</DialogTitle>
+          <DialogTitle>{t('addContact')}</DialogTitle>
           <DialogDescription>
-            Search for a user or manually add a contact
+            {t('searchForUserOrManual')}
           </DialogDescription>
         </DialogHeader>
 
@@ -167,11 +167,11 @@ export function AddContactDialog({
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="search">
                 <Search className="h-4 w-4 mr-2" />
-                Search User
+                {t('searchUser')}
               </TabsTrigger>
               <TabsTrigger value="manual">
                 <UserCircle className="h-4 w-4 mr-2" />
-                Manual Add
+                {t('manualAdd')}
               </TabsTrigger>
             </TabsList>
 
@@ -182,7 +182,7 @@ export function AddContactDialog({
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="search"
-                    placeholder="Name, username, or email..."
+                    placeholder={t('nameUsernameOrEmail')}
                     value={searchQuery}
                     onChange={(e) => {
                       setSearchQuery(e.target.value)
@@ -202,7 +202,7 @@ export function AddContactDialog({
                       isSearching ? (
                         <div className="flex items-center justify-center py-8 text-muted-foreground">
                           <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                          Searching...
+                          {t('searching')}
                         </div>
                       ) : searchError ? (
                         <div className="text-sm text-destructive py-4 text-center">
@@ -249,23 +249,23 @@ export function AddContactDialog({
                       ) : (
                         <div className="text-center py-8 text-sm text-muted-foreground">
                           <UserIcon className="h-12 w-12 mx-auto mb-2 opacity-20" />
-                          <p>No users found</p>
-                          <p className="text-xs mt-1">Try a different search term</p>
+                          <p>{t('noUsersFound')}</p>
+                          <p className="text-xs mt-1">{t('tryDifferentSearch')}</p>
                         </div>
                       )
                     ) : searchQuery.length === 1 ? (
                       // 输入 1 个字符时，提示用户继续输入
                       <div className="text-center py-8 text-sm text-muted-foreground">
                         <Search className="h-12 w-12 mx-auto mb-2 opacity-20" />
-                        <p>Keep typing to search</p>
-                        <p className="text-xs mt-1">Type at least 2 characters to search for users</p>
+                        <p>{t('keepTypingToSearch')}</p>
+                        <p className="text-xs mt-1">{t('typeAtLeast2Chars')}</p>
                       </div>
                     ) : (
                       // 没有输入时，显示提示
                       <div className="text-center py-8 text-sm text-muted-foreground">
                         <Search className="h-12 w-12 mx-auto mb-2 opacity-20" />
-                        <p>Start typing to search for users</p>
-                        <p className="text-xs mt-1">Type at least 2 characters to search</p>
+                        <p>{t('startTypingToSearch')}</p>
+                        <p className="text-xs mt-1">{t('typeAtLeast2Chars')}</p>
                       </div>
                     )}
                   </div>
@@ -280,7 +280,7 @@ export function AddContactDialog({
                   <div className="space-y-4 pb-4">
                     <div className="space-y-2">
                       <Label htmlFor="manual-name">
-                        Full Name <span className="text-destructive">*</span>
+                        {t('fullName')} <span className="text-destructive">*</span>
                       </Label>
                       <Input
                         id="manual-name"
@@ -293,7 +293,7 @@ export function AddContactDialog({
 
                     <div className="space-y-2">
                       <Label htmlFor="manual-email">
-                        Email <span className="text-destructive">*</span>
+                        {t('email')} <span className="text-destructive">*</span>
                       </Label>
                       <div className="relative">
                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -309,7 +309,7 @@ export function AddContactDialog({
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="manual-phone">Phone (Optional)</Label>
+                      <Label htmlFor="manual-phone">{t('phoneOptional')}</Label>
                       <div className="relative">
                         <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
@@ -324,7 +324,7 @@ export function AddContactDialog({
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="manual-company">Company/Organization (Optional)</Label>
+                      <Label htmlFor="manual-company">{t('companyOptional')}</Label>
                       <div className="relative">
                         <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
@@ -338,10 +338,10 @@ export function AddContactDialog({
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="manual-notes">Notes (Optional)</Label>
+                      <Label htmlFor="manual-notes">{t('notesOptional')}</Label>
                       <Textarea
                         id="manual-notes"
-                        placeholder="Additional information about this contact..."
+                        placeholder={t('additionalInfoPlaceholder')}
                         value={manualNotes}
                         onChange={(e) => setManualNotes(e.target.value)}
                         rows={4}
@@ -357,11 +357,11 @@ export function AddContactDialog({
 
         <DialogFooter className="mt-2 flex-shrink-0 bg-background">
           <Button variant="outline" onClick={handleClose}>
-            Cancel
+            {t('cancel')}
           </Button>
           <Button onClick={handleAdd} disabled={!canAdd}>
             <UserPlus className="h-4 w-4 mr-2" />
-            Add Contact
+            {t('addContact')}
           </Button>
         </DialogFooter>
       </DialogContent>

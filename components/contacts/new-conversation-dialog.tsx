@@ -18,6 +18,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { User } from '@/lib/types'
 import { Search, Users, MessageSquare } from 'lucide-react'
+import { useSettings } from '@/lib/settings-context'
+import { getTranslation } from '@/lib/i18n'
 
 interface NewConversationDialogProps {
   open: boolean
@@ -40,6 +42,8 @@ export function NewConversationDialog({
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
   const [groupName, setGroupName] = useState('')
   const [tab, setTab] = useState<'direct' | 'group'>('direct')
+  const { language } = useSettings()
+  const t = (key: keyof typeof import('@/lib/i18n').translations.en) => getTranslation(language, key)
 
   const filteredUsers = users
     .filter(u => {
@@ -84,9 +88,9 @@ export function NewConversationDialog({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl max-h-[600px] flex flex-col p-0">
         <DialogHeader className="px-6 pt-6">
-          <DialogTitle>New Conversation</DialogTitle>
+          <DialogTitle>{t('newConversation')}</DialogTitle>
           <DialogDescription>
-            Start a direct message or create a group chat
+            {t('startDirectOrGroup')}
           </DialogDescription>
         </DialogHeader>
 
@@ -94,11 +98,11 @@ export function NewConversationDialog({
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="direct">
               <MessageSquare className="h-4 w-4 mr-2" />
-              Direct Message
+              {t('directMessage')}
             </TabsTrigger>
             <TabsTrigger value="group">
               <Users className="h-4 w-4 mr-2" />
-              Group Chat
+              {t('groupChat')}
             </TabsTrigger>
           </TabsList>
 
@@ -106,7 +110,7 @@ export function NewConversationDialog({
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search users..."
+                placeholder={t('searchUsers')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
@@ -152,17 +156,17 @@ export function NewConversationDialog({
 
           <TabsContent value="group" className="flex-1 mt-0 flex flex-col gap-4">
             <div className="space-y-2">
-              <Label htmlFor="group-name">Group Name</Label>
+              <Label htmlFor="group-name">{t('groupName')}</Label>
               <Input
                 id="group-name"
-                placeholder="Enter group name..."
+                placeholder={t('enterGroupName')}
                 value={groupName}
                 onChange={(e) => setGroupName(e.target.value)}
               />
             </div>
 
             <div className="space-y-2 flex-1">
-              <Label>Add Members ({selectedUsers.length} selected)</Label>
+              <Label>{t('addMembers')} ({selectedUsers.length} {t('selected')})</Label>
               <ScrollArea className="h-[200px] pr-4">
                 <div className="space-y-2">
                   {filteredUsers.map((user) => (
@@ -196,10 +200,10 @@ export function NewConversationDialog({
 
         <DialogFooter className="px-6 pb-6">
           <Button variant="outline" onClick={handleClose}>
-            Cancel
+            {t('cancel')}
           </Button>
           <Button onClick={handleCreate} disabled={!canCreate}>
-            Create
+            {t('create')}
           </Button>
         </DialogFooter>
       </DialogContent>
