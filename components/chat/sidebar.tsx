@@ -546,7 +546,7 @@ export function Sidebar({
           </div>
           <div className="px-4 py-1.5 flex items-center gap-2 text-xs text-muted-foreground">
             <Loader2 className="h-3 w-3 animate-spin" />
-            <span>Refreshing...</span>
+            <span>{t('refreshing')}</span>
           </div>
         </div>
       )} */}

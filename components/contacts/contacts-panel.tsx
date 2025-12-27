@@ -407,7 +407,7 @@ export function ContactsPanel({
               </TabsTrigger>
               <TabsTrigger value="requests" className="flex-1 relative">
                 <UserPlus className="h-4 w-4 mr-2" />
-                Requests
+                {t('requests')}
                 {pendingRequestsCount > 0 && (
                   <span className="ml-1 inline-flex items-center justify-center rounded-full bg-red-500 text-[10px] leading-none text-white px-1.5 py-0.5">
                     {pendingRequestsCount}
