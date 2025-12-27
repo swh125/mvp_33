@@ -89,7 +89,7 @@ export function CreateChannelDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="channel-description">{t('description')} (optional)</Label>
+            <Label htmlFor="channel-description">{t('description')} ({t('optional')})</Label>
             <Textarea
               id="channel-description"
               placeholder={t('channelDescriptionPlaceholder')}
